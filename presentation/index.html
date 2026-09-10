@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrust CA one-box bootstrap</title>
+<style>
+  :root{
+    --bg:#0e1116; --fg:#e6edf3; --dim:#9aa7b4; --accent:#4c9ffe; --accent2:#3fb950;
+    --card:#161b22; --border:#2a313c; --warn:#d29922; --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#ffffff; --fg:#1c2128; --dim:#57606a; --accent:#0969da; --accent2:#1a7f37;
+           --card:#f6f8fa; --border:#d0d7de; --warn:#9a6700; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+  #deck{width:min(960px,94vw);height:min(620px,92vh);position:relative}
+  .slide{position:absolute;inset:0;padding:44px 52px;background:var(--card);border:1px solid var(--border);
+         border-radius:14px;opacity:0;transform:translateY(8px);transition:opacity .18s,transform .18s;
+         overflow:auto;display:none}
+  .slide.active{opacity:1;transform:none;display:block}
+  h1{font-size:30px;margin:.1em 0 .35em;line-height:1.2}
+  h2{font-size:23px;margin:0 0 .7em;color:var(--accent)}
+  p,li{color:var(--fg)}
+  .dim{color:var(--dim)}
+  ul{margin:.3em 0 .3em 1.1em;padding:0}
+  li{margin:.3em 0}
+  code,kbd{font-family:var(--mono);font-size:.86em;background:rgba(128,128,128,.16);padding:.1em .4em;border-radius:5px}
+  pre{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px 16px;overflow:auto;
+      font-family:var(--mono);font-size:12.5px;line-height:1.5}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .box{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px 14px}
+  .box h3{margin:0 0 .4em;font-size:14px;color:var(--accent2);letter-spacing:.02em;text-transform:uppercase}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--border);
+       border-radius:20px;padding:2px 10px;margin:2px 4px 2px 0}
+  .warn{color:var(--warn)}
+  .pipe{font-family:var(--mono);font-size:12.5px;white-space:pre;line-height:1.5;color:var(--dim)}
+  footer{position:fixed;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:18px;
+         color:var(--dim);font-size:12.5px}
+  footer b{color:var(--fg)}
+  .khint{position:fixed;top:14px;right:18px;color:var(--dim);font-size:12px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <section class="slide">
+    <p class="dim" style="font-family:var(--mono);font-size:13px">unattended · single-host · reboot-safe</p>
+    <h1>Entrust Certificate Authority + CA Gateway<br>one-box bootstrap</h1>
+    <p>A set of plain-bash scripts that stand up a complete REST-issuing PKI on
+       <b>one Oracle Linux 9 VM</b> — CA, database, directory, HSM client, and the
+       CA Gateway container — then make it survive a reboot with no operator.</p>
+    <p class="dim">Scripts only. No vendor software, installers, images, licences, or docs are
+       included or redistributed — you supply those from your own Entrust entitlement.</p>
+    <p><span class="tag">Oracle Linux 9 + UEK</span><span class="tag">ECA 10.2</span>
+       <span class="tag">CA Gateway 3.8</span><span class="tag">nShield softcard</span>
+       <span class="tag">rootless Podman</span><span class="tag">MIT</span></p>
+  </section>
+
+  <section class="slide">
+    <h2>The problem it solves</h2>
+    <ul>
+      <li>CA Gateway 3.8's supported-CA matrix is <b>ECA 8.3 / 10.1.1 / 10.2</b>.</li>
+      <li>Pair it with a newer ECA and it <i>authenticates</i> but <b>cannot issue</b> —
+          the activation-code format is rejected (<code>cagw-5501</code>).</li>
+      <li>So the reliable REST-issuance path is <b>CA Gateway 3.8 + an ECA 10.2 CA</b>.</li>
+      <li>For a lab or a small deployment there is no reason to spread that across hosts —
+          but the build has a dozen easy-to-miss details.</li>
+    </ul>
+    <p class="dim">This bundle captures a working reference build as an unattended, resumable
+       pipeline, and documents every prerequisite up front.</p>
+  </section>
+
+  <section class="slide">
+    <h2>What you get</h2>
+    <div class="grid">
+      <div class="box"><h3>CA</h3>ECA 10.2 root CA, RSA-4096 signing key in an nShield
+        softcard, embedded PostgreSQL 15, 389-ds directory. Cert + CRL published.</div>
+      <div class="box"><h3>Gateway</h3>CA Gateway 3.8 as a <b>rootless Podman Quadlet</b>
+        service, co-resident on the same VM. Mutual-TLS REST API.</div>
+      <div class="box"><h3>Reboot-safe</h3>CA service + boot-persistent softcard
+        <code>preload</code> unit + user-manager linger — everything returns unattended.</div>
+      <div class="box"><h3>Device identities</h3>Two enrolment profiles out of the box:
+        client-generated key (CSR&nbsp;→&nbsp;X.509) and CA-generated key (→&nbsp;PKCS#12).</div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>Architecture — one VM</h2>
+    <div class="pipe">   requester ──mutual TLS──▶  CA Gateway 3.8            Entrust CA 10.2
+                              :8444 /cagw/v1   ├─ SecurityManager ──XAP 443──▶ ├─ entca.service
+                                               │   connector      ──CMP 829──▶ ├─ PKIX-CMP / ASH / XAP
+                                               │                  ──LDAP 389─▶ ├─ PostgreSQL 15  (local)
+                              rootless podman  ┘                               └─ 389-ds         (local)
+                              cagw.service (user, linger)                signing key
+                                                                              │
+       &lt;inst&gt;-preload.service ── holds `preload … pause` ──────────────────────┘  ▶ nShield softcard</div>
+    <p class="dim">CAGW ↔ CA traffic is local. Two independent trust chains: the ECA CA issues
+       end-entity certs; a small self-signed CA (generated by stage 80) secures the REST endpoint.</p>
+  </section>
+
+  <section class="slide">
+    <h2>The pipeline — <code>./bootstrap.sh</code></h2>
+    <div class="pipe">00 preflight        verify OS · UEK kernel · DNS · disk · sudo · media · HSM   (no changes)
+10 os_prereqs       packages · users · firewalld · chrony · fstrim · podman linger
+20 nshield_client   Security World · enrol module · create softcard · cknfastrc
+30 eca_database     GPG verify · install PostgreSQL RPM · silent DB setup
+40 eca_directory    dscreate · load schema (ldapmodify) · CA entry + ACIs
+50 eca_engine       install CA · config_authority.sh -s -f · init  (held preload + expect)
+60 eca_systemd      autologin · preload unit · stock entca.service · enable · verify
+── 70 MANUAL ──     ECAA Step D: create the CAGW admin user  →  ref # + activation code
+75 cagw_admin_epf   Profile Creation Utility (expect)  →  admin.epf
+80 cagw_config      mTLS CA/server/client · render application.yml · licence
+85 cagw_run         podman load · rootless Quadlet · linger · start
+95 verify           /status UP  →  POST enrollments ACCEPTED  →  openssl verify</div>
+    <p class="dim">Resumable — each stage writes <code>.state/&lt;stage&gt;.done</code>.
+       <code>FORCE=1 ./bootstrap.sh --only 40</code> re-runs one.</p>
+  </section>
+
+  <section class="slide">
+    <h2>The one manual step</h2>
+    <p>ECA 10.2's control shell has no user/role commands, so <b>one action is done in the
+       Entrust CA Administration (ECAA) 10.2 Windows GUI</b> — about ten clicks:</p>
+    <ul>
+      <li>Create user <code>cn=cagw&nbsp;xapv2</code> — certificate type
+          <b>“Admin Services User Management”</b> (policy OID <code>2.16.840.1.114027.10.4</code>).</li>
+      <li>Role <b>User Administrator</b> + tick <b>Perform PKIX requests</b> and
+          <b>Create user profile</b>; commit the security policy.</li>
+      <li>Record the <b>reference number</b> + <b>activation code</b>.</li>
+    </ul>
+    <p>The bootstrap pauses and prints this exact procedure. Paste the two values into
+       <code>bootstrap.env</code>, re-run — it continues from stage 75. Provide them up front
+       and it never stops.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Host prerequisites — verified by stage 00</h2>
+    <div class="grid">
+      <div class="box"><h3>OS</h3>Oracle Linux <b>9.x</b> with the <b>UEK kernel</b>
+        (<code>uname -r</code> ends <code>el9uek</code>). The engine RPM enforces both.</div>
+      <div class="box"><h3>Identity</h3>lowercase FQDN, forward + reverse DNS, real IP in
+        <code>/etc/hosts</code>. ≥ 30 GB free. Root or passwordless sudo. NTP synced.</div>
+      <div class="box"><h3>Packages</h3><code>net-tools gawk libnsl</code> + PostgreSQL &amp;
+        389-ds deps + <code>podman</code> + <code>java-11</code> + <code>expect</code>.
+        Installed by stage 10.</div>
+      <div class="box"><h3>HSM</h3>an nShield Security World reachable as a NetHSM or via RFS.
+        Softcard is created for you. Client authorisation helper included.</div>
+    </div>
+    <p class="dim">Media you provide (not in this repo): ECA 10.2 engine + PostgreSQL RPMs,
+       RPM signing key, Directory Files zip, CAGW image + Profile Creation Utility + licence,
+       Security World Software, ECAA MSI.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Secrets &amp; safety</h2>
+    <ul>
+      <li><b>Secrets are generated on first run</b> into <code>./secrets/*.env</code> (mode 0600) —
+          DB roles, 389-ds, CA Master 1/2/3, First Officer, softcard passphrase, CAGW EPF.
+          Re-runs reuse them. <span class="warn">Back up <code>./secrets/</code> — no other copy
+          of the Master User passwords exists.</span></li>
+      <li><code>.gitignore</code> excludes secrets, media, state, and every key / cert / licence
+          extension.</li>
+      <li>Stage 20 never re-initialises a Security World and skips softcard creation if it exists.</li>
+      <li>The HSM client-authorisation helper backs up the hardserver config and <b>aborts if any
+          existing client record would change</b>.</li>
+      <li>No stage deletes data.</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>The device-identity API</h2>
+    <p class="dim">Mutual TLS required. Subjects are built <b>X.500 root-first</b> (CN last) —
+       the connector reverses RDN order.</p>
+    <div class="grid">
+      <div class="box"><h3>Model A · device key</h3>
+        <pre>POST …/enrollments
+{ "profileId": "0",
+  "requiredFormat": {"format":"X509"},
+  "csr": "&lt;b64 DER PKCS#10&gt;" }
+→ ACCEPTED · X.509 leaf + chain</pre>
+        key never leaves the device</div>
+      <div class="box"><h3>Model B · CA key</h3>
+        <pre>POST …/enrollments
+{ "profileId": "1",
+  "requiredFormat": {"format":"PKCS12",
+    "protection":{"type":"PasswordProtection",
+                  "password":"…"}},
+  "optionalCertificateRequestDetails":
+    {"subjectDn":"cn=dev,ou=CA,dc=…"} }
+→ ACCEPTED · PKCS#12</pre>
+        <span class="warn">needs “Generate key at client” unchecked in ECAA</span></div>
+    </div>
+    <p class="dim">Renew = new CSR, same subject. Revoke = <code>POST …/certificates/{serial}/revocations</code>.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Run it</h2>
+    <pre>git clone https://github.com/om0104/entrust-ca-onebox-bootstrap.git
+cd entrust-ca-onebox-bootstrap
+cp bootstrap.env.example bootstrap.env
+$EDITOR bootstrap.env          # identity · HSM · media paths · licence values
+
+./bootstrap.sh                 # stages 00 → 95, resumes where it stopped
+./bootstrap.sh --only 95       # re-verify any time
+REBOOT=1 ./bootstrap.sh --only 95   # full one-box reboot test</pre>
+    <ul>
+      <li><b>README.md</b> — full prerequisites + stage reference</li>
+      <li><b>docs/ARCHITECTURE.md</b> — the diagram, the non-obvious rules, the API in detail</li>
+      <li><b>stages/70_PAUSE_ecaa_stepd.md</b> — the one manual step, click by click</li>
+    </ul>
+    <p class="dim">MIT licensed. Issues &amp; PRs welcome — the fragile parts are the
+       version globs and the <code>expect</code> prompt patterns.</p>
+  </section>
+
+</div>
+
+<div class="khint">← → · space</div>
+<footer><span>Entrust CA one-box bootstrap</span><span class="dim" id="pg"></span></footer>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const show=n=>{ i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    document.getElementById('pg').textContent=(i+1)+' / '+slides.length;
+    location.hash=i+1; };
+  addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1);}
+    if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(i-1);}
+    if(e.key==='Home')show(0); if(e.key==='End')show(slides.length-1);
+  });
+  addEventListener('click',e=>{ if(e.target.closest('a'))return;
+    const x=e.clientX/innerWidth; if(x>0.6)show(i+1); else if(x<0.4)show(i-1); });
+  show(parseInt(location.hash.slice(1))-1 || 0);
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Rendered by stages/85_cagw_run.sh into ~/.config/containers/systemd/cagw.container
+# Rootless Podman Quadlet -> generates cagw.service in the user manager.
+[Unit]
+Description=Entrust CA Gateway 3.8 (co-resident with ECA 10.2 on @@ECA_FQDN@@)
+After=network-online.target entca.service
+Wants=network-online.target
+
+[Container]
+Image=@@CAGW_IMAGE@@
+ContainerName=cagw
+Network=host
+UserNS=keep-id:uid=1339,gid=1339
+Volume=@@CONFIG_DIR@@:/etc/cagw/config:Z
+HostName=@@ECA_FQDN@@
+Environment=LOADER_PATH=/etc/cagw/config/plugins
+Environment=JAVA_OPTS=-Xmx1536m
+
+[Service]
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=180
+
+[Install]
+WantedBy=default.target

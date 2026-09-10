@@ -1,0 +1,75 @@
+# CA Gateway 3.8 — rendered by stages/80_cagw_config.sh
+# Co-resident one-box: the SecurityManager connector talks to the local ECA 10.2 CA.
+server:
+  port: @@CAGW_PORT@@
+  servlet:
+    context-path: /cagw
+  ssl:
+    enabled: true
+    protocol: "TLS"
+    key-alias: cagw
+    key-store: "/etc/cagw/config/server.p12"
+    key-store-password: "@@P12PW@@"
+    key-store-type: pkcs12
+    trust-store: "/etc/cagw/config/server.p12"
+    trust-store-password: "@@P12PW@@"
+    trust-store-type: pkcs12
+    client-auth: need
+
+cagw:
+  authorities:
+    managed-cas:
+      @@CAGW_CA_ID@@:
+        name: onebox
+        issuer-dn: "@@CA_ISSUER_DN@@"
+        connector-name: com.entrust.SecurityManager
+        properties:
+          sm-host: @@ECA_FQDN@@
+          pkix-port: "@@PKIX_PORT@@"
+          ldap-host: @@ECA_FQDN@@
+          ldap-port: "389"
+          ldap-principal: "cn=Directory Manager"
+          ldap-credential: "@@DS_ROOT_PW@@"
+          xap-port: "@@XAP_PORT@@"
+          admin-epf: /etc/cagw/config/admin.epf
+          admin-epf-password: "@@CAGW_ADMIN_EPF_PW@@"
+          default-query-page-size: "1000"
+        profiles:
+          # profileId "0" — device-generated key: client sends a PKCS#10 CSR, gets X.509
+          - name: "default"
+            properties:
+              cert-type: "@@DEVICE_CERT_TYPE@@"
+              cert-definition: "@@DEVICE_CERT_DEFINITION@@"
+              key-client-generated: true
+          # profileId "1" — CA-generated key: no CSR, returns a PKCS#12
+          # (requires "Generate key at client" UNCHECKED on the ECA Certificate Definition)
+          - name: "pkcs12"
+            properties:
+              cert-type: "@@DEVICE_CERT_TYPE@@"
+              cert-definition: "@@DEVICE_CERT_DEFINITION@@"
+              key-client-generated: false
+
+  license:
+    file-path: "/etc/cagw/config/license.lic"
+
+  tenants:
+    - name: "tenant-1"
+      unique-id: "tenant-1"
+      ca-id: "@@CAGW_CA_ID@@"
+      base-dn: "@@CA_OU_DN@@"
+
+  integrators:
+    - name: "integrator-1"
+      unique-id: "integrator-1"
+      tenant-ids:
+        - "tenant-1"
+
+  clients:
+    - subject-dn: "cn=onebox client 1, o=onebox"
+      integrator-id: "integrator-1"
+      role: integrator
+
+logging:
+  level:
+    root: INFO
+    com.entrust.adminservices.cagw.caconnector: INFO

@@ -1,0 +1,32 @@
+# --- runtime / operator state (never commit) ---
+bootstrap.env
+secrets/
+.state/
+logs/
+media/
+media.sha256
+
+# --- vendor media & credentials (must never be redistributed) ---
+*.rpm
+*.iso
+*.msi
+*.docker.tar.gz
+*.lic
+*.lic.bundle
+*.epf
+*.xcc
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.key
+*.pem
+*.csr
+
+# --- misc ---
+.DS_Store
+*.log
+*.swp
+
+# claude code working files
+.claude/
