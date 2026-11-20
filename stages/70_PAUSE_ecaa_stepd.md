@@ -45,6 +45,8 @@ paste those into `bootstrap.env` and re-run `./bootstrap.sh`.
      by default; a least-privilege custom role does **not**.
    * Check the role's **Summary** tab: `Perform PKIX requests`, `Create user profile` and
      `View activation codes` must all read **Yes**.
+   * Once `admin.epf` exists (stage 75), `helpers/cagw_role_check.sh` checks the same thing
+     against the CA, read-only; stage 95 runs it automatically. It needs a JDK 17+.
    * **Commit the security policy** (`Security Policy` → `Commit`), wait for it to propagate.
 
 4. **(Optional, verify)** After the directory publishes the user's cert, confirm the policy OID:

@@ -90,6 +90,11 @@ Plus: `chronyd`, `firewalld` (opens ASH/PKIX/XAP + the CAGW port), `fstrim.timer
 * `gawk` + `libnsl` are the documented ECA prerequisites.
 * `java-11-openjdk-headless` is only for the profile utility — ECA and CAGW ship their own JRE.
   Do **not** use Java 21 for that tool.
+* **Optional: a JDK 17+** (e.g. `java-17-openjdk-devel`) for `helpers/cagw_role_check.sh`,
+  the read-only CAGW admin role check that stage 95 runs. The Entrust toolkit jars are Java 17
+  class files. The helper finds the JDK under `/usr/lib/jvm` (or `JDK_HOME`) by full path and never
+  uses the default `java`. If installing it switches the default, set it back to 11 for `pcu.sh`:
+  `alternatives --config java`. Without a JDK 17+, stage 95 skips the check with a warning.
 
 ---
 
@@ -190,6 +195,9 @@ $EDITOR bootstrap.env            # identity, HSM, media paths, licence values
 * Stage 20 never re-initialises a Security World and skips softcard creation if it exists.
 * `helpers/hsm_authorize_client.sh` backs up the hardserver config and aborts if any existing
   client record would change.
+* `helpers/cagw_role_check.sh` is read-only: it logs in with `admin.epf`, reads the CAGW
+  admin's own role by ID, and reports OK/MISS for Perform PKIX requests, Create user profile,
+  Change user's role and View activation codes. Exit 0 = pass, 1 = missing, 2 = could not check.
 * No stage deletes data. To start over, remove the CA / PostgreSQL / directory instances by hand.
 
 ---

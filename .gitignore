@@ -3,6 +3,7 @@ bootstrap.env
 secrets/
 .state/
 logs/
+.cache/
 media/
 media.sha256
 

@@ -26,6 +26,14 @@ echo "$st" | python3 -m json.tool 2>/dev/null || echo "$st"
 echo "$st" | grep -q '"status"[ :]*"UP"' || die "CAGW status not UP"
 ok "LDAP / XAP / PKIXCMP UP"
 
+info "1b) CAGW admin role permissions (read-only)"
+set +e; "$BOOTSTRAP_ROOT/helpers/cagw_role_check.sh"; rc=$?; set -e
+case $rc in
+  0) ok "CAGW admin role has every permission CAGW needs" ;;
+  1) die "CAGW admin role is missing permissions (see MISS lines above)" ;;
+  *) warn "role check could not run (needs a JDK 17+) — continuing; the enrolment below is the real test" ;;
+esac
+
 info "2) device-identity enrolment — Model A (client-generated key, profileId 0)"
 work="$(mktemp -d)"; cd "$work"
 # X.500 root-first subject — the SecurityManager connector reverses RDN order
