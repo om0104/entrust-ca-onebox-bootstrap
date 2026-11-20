@@ -24,7 +24,7 @@ import java.util.Map;
  * writes to the CA.
  *
  *   java -cp <this dir>:<CAGW jars> CagwRoleCheck <admin.epf> <xap url> [role id]
- *   EPF password: environment variable CAGW_ADMIN_EPF_PW (never on the command line).
+ *   The EPF unlock secret is read from the CAGW_ADMIN_EPF_PW environment variable, never from argv.
  *   [role id] overrides the admin's own role, for diagnostics only.
  *
  * Exit: 0 = all required permissions granted, 1 = one or more missing, 2 = could not check.
