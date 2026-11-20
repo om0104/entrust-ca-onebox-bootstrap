@@ -47,6 +47,7 @@
 | Directory schema | The 10.2 schema LDIF is `ldapmodify`-format (`dn: cn=schema` / `changetype: modify`) — applied with `ldapmodify -f`, **not** dropped into `schema/`. |
 | CAGW admin identity | Certificate type **"Admin Services User Management"** (policy OID `2.16.840.1.114027.10.4`). Not "…​Administrator" (OID `…10.21`). There is no "XAP Client" type in 10.2. |
 | CAGW admin role | Needs **Perform PKIX requests** + **Create user profile** + **View activation codes** (+ Change user's role). Without the first, the CA rejects CAGW's RA-signed CMP with `(-2207) EntrustProofOfRA … insufficient permissions`. Without View activation codes, the CA returns masked codes (`****-****-****`) and every enrolment fails `cagw-5501 "Authorization code contained invalid characters"`. `User Administrator` has it by default; a custom role must have it added. |
+| CAGW profile cert type | Use `cert-type: ent_skp_dualusage` with `cert-definition: "Dual Usage"`. ECA's `ent_default` holds only Encryption + Verification, so a Dual Usage request fails with `The certificate request must reference a certificate definition that is present in the certificate template …`. |
 | CSR subject order | The SecurityManager connector **reverses RDN order**. Build subjects **X.500 root-first** (`CN` last): `/DC=net/DC=example/OU=CA/CN=<device-id>`. |
 
 ## The device-identity enrolment API
