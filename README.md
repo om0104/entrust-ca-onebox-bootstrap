@@ -22,10 +22,15 @@ chains to the local CA, and the whole box comes back after a reboot with **no op
 
 ## Why
 
-CA Gateway 3.8's supported-CA matrix is ECA **8.3 / 10.1.1 / 10.2**. Pairing it with a newer
-ECA authenticates but cannot issue (the activation-code format is rejected — `cagw-5501`). So
-the reliable REST-issuance path is **CAGW 3.8 + a supported ECA 10.2 CA**, and for a lab or a
-small deployment there is no reason to spread it across hosts. This bundle stands the whole
+CA Gateway 3.8's supported-CA matrix is ECA **8.3 / 10.1.1 / 10.2**, so this bundle builds
+**CAGW 3.8 + a supported ECA 10.2 CA**. For a lab or a small deployment there is no reason to
+spread it across hosts.
+
+> **Note (corrected 2026-11-20):** an earlier version of this README said CAGW 3.8 cannot issue
+> against a newer ECA (`cagw-5501`, "activation-code format rejected"). That was wrong. The
+> `cagw-5501` came from the CAGW admin's role lacking **View activation codes**, so the CA masked
+> the code. With that permission, CAGW 3.8 issued against ECA 11.0.1 in our lab. That pairing is
+> still outside the published support matrix. See `stages/70_PAUSE_ecaa_stepd.md` step 3. This bundle stands the whole
 thing up on one VM, unattended, and makes it survive reboots.
 
 It was built from a working reference deployment and captures the parts that are easy to get

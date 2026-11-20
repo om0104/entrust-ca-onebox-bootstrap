@@ -35,6 +35,11 @@ CSR_B64="$(openssl req -in d.csr -outform DER | base64 -w0)"
 resp="$(curl -s "${CC[@]}" -X POST "$BASE/enrollments" -H 'Content-Type: application/json' \
   -d "{\"profileId\":\"0\",\"requiredFormat\":{\"format\":\"X509\"},\"csr\":\"$CSR_B64\"}")"
 echo "$resp" | python3 -m json.tool 2>/dev/null || echo "$resp"
+if echo "$resp" | grep -q 'cagw-5501'; then
+  warn "cagw-5501 'invalid characters' = the CA returned a MASKED activation code (****-****-****):"
+  warn "the CAGW admin's role lacks Users -> 'View activation codes'. Grant it in ECAA (see"
+  warn "stages/70_PAUSE_ecaa_stepd.md step 3), commit the security policy, restart entca + CAGW."
+fi
 echo "$resp" | grep -q '"status"[ :]*"ACCEPTED"' || die "enrolment not ACCEPTED"
 serial="$(echo "$resp" | python3 -c 'import json,sys;d=json.load(sys.stdin);print(d.get("enrollment",{}).get("serialNumber",""))' 2>/dev/null || true)"
 ok "enrolment ACCEPTED (serial ${serial:-?})"

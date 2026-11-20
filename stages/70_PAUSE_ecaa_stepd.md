@@ -39,6 +39,12 @@ paste those into `bootstrap.env` and re-run `./bootstrap.sh`.
        (`(-2207) … EntrustProofOfRA … insufficient permissions`).
      * **`Create user profile`**
      * `Change user's role` (usually already ticked)
+   * Category **Users** → tick **`View activation codes`**. Without it, ECA returns every
+     activation code masked as `****-****-****`, and every enrolment fails with
+     `cagw-5501 "Authorization code contained invalid characters"`. `User Administrator` has it
+     by default; a least-privilege custom role does **not**.
+   * Check the role's **Summary** tab: `Perform PKIX requests`, `Create user profile` and
+     `View activation codes` must all read **Yes**.
    * **Commit the security policy** (`Security Policy` → `Commit`), wait for it to propagate.
 
 4. **(Optional, verify)** After the directory publishes the user's cert, confirm the policy OID:

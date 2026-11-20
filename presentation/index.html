@@ -65,9 +65,9 @@
     <h2>The problem it solves</h2>
     <ul>
       <li>CA Gateway 3.8's supported-CA matrix is <b>ECA 8.3 / 10.1.1 / 10.2</b>.</li>
-      <li>Pair it with a newer ECA and it <i>authenticates</i> but <b>cannot issue</b> —
-          the activation-code format is rejected (<code>cagw-5501</code>).</li>
-      <li>So the reliable REST-issuance path is <b>CA Gateway 3.8 + an ECA 10.2 CA</b>.</li>
+      <li>So the supported REST-issuance path is <b>CA Gateway 3.8 + an ECA 10.2 CA</b>.</li>
+      <li>Seeing <code>cagw-5501</code> ("invalid characters")? The CAGW admin's role is missing
+          <b>View activation codes</b>, so the CA masks the code. This is not a version problem.</li>
       <li>For a lab or a small deployment there is no reason to spread that across hosts —
           but the build has a dozen easy-to-miss details.</li>
     </ul>
@@ -129,7 +129,8 @@
       <li>Create user <code>cn=cagw&nbsp;xapv2</code> — certificate type
           <b>“Admin Services User Management”</b> (policy OID <code>2.16.840.1.114027.10.4</code>).</li>
       <li>Role <b>User Administrator</b> + tick <b>Perform PKIX requests</b> and
-          <b>Create user profile</b>; commit the security policy.</li>
+          <b>Create user profile</b>, and make sure <b>View activation codes</b> is on
+          (without it, every enrolment fails <code>cagw-5501</code>); commit the security policy.</li>
       <li>Record the <b>reference number</b> + <b>activation code</b>.</li>
     </ul>
     <p>The bootstrap pauses and prints this exact procedure. Paste the two values into
